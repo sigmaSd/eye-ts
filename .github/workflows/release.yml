@@ -1,0 +1,86 @@
+name: Release libs
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "tag name"
+        required: true
+
+permissions:
+  contents: write
+ 
+jobs:
+  build:
+    name: Release libs
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+
+    - uses: goto-bus-stop/setup-zig@v1
+      with:
+        version: 0.10.1
+      if: runner.os == 'Linux'
+
+    - name: Build
+      uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --release --manifest-path src-rust/Cargo.toml
+
+    - name: Release MacOS lib1
+      if: runner.os == 'MacOS'
+      run: |
+        mv src-rust/target/release/libhello.dylib libhello_x86_64.dylib
+
+    - name: Release MacOS lib2
+      if: runner.os == 'MacOS'
+      uses: svenstaro/upload-release-action@v2
+      with:
+        file: libhello_x86_64.dylib
+        tag: ${{ github.event.inputs.tag }}
+        overwrite: true
+
+    - name: Install cargo-zigbuild
+      if: runner.os == 'Linux'
+      run: |
+        cargo install cargo-zigbuild
+
+    - name: Release MacOS arm lib1
+      if: runner.os == 'Linux'
+      run: |
+        rustup target add aarch64-apple-darwin
+        cargo zigbuild --release --manifest-path src-rust/Cargo.toml --target aarch64-apple-darwin
+        mv src-rust/target/aarch64-apple-darwin/release/libhello.dylib libhello_aarch64.dylib
+
+    - name: Release MacOS arm lib2
+      if: runner.os == 'Linux'
+      uses: svenstaro/upload-release-action@v2
+      with:
+        file: libhello_aarch64.dylib
+        tag: ${{ github.event.inputs.tag }}
+        overwrite: true
+
+    - name: Release Linux lib
+      if: runner.os == 'Linux'
+      uses: svenstaro/upload-release-action@v2
+      with:
+        file: src-rust/target/release/libhello.so
+        tag: ${{ github.event.inputs.tag }}
+        overwrite: true
+
+    - name: Release Windows lib
+      if: runner.os == 'Windows'
+      uses: svenstaro/upload-release-action@v2
+      with:
+        file: src-rust/target/release/hello.dll
+        tag: ${{ github.event.inputs.tag }}
+        overwrite: true
