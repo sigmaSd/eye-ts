@@ -1,8 +1,7 @@
-import { Hello } from "./src/mod.ts";
-import type { World } from "./src/mod.ts";
+import { Hello, type World } from "./src/mod.ts";
 
-const hello = await Hello.create();
+const hello = new Hello();
 const world: World = { size: 500 };
-console.log("[deno] the world size is:", world);
+console.log("The world size is:", world);
 const newWorld = hello.hello(world);
-console.log("[deno] the newWorld size is:", newWorld);
+console.log("The newWorld size is:", newWorld);

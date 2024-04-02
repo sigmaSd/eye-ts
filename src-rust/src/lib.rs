@@ -1,28 +1,22 @@
 use serde::{Deserialize, Serialize};
-use std::{
-    ffi::CString,
-    mem::ManuallyDrop,
-    sync::{Arc, Mutex, MutexGuard},
-};
+use std::{ffi::CString, mem::ManuallyDrop};
 mod utils;
-use utils::cstr_to_type;
+use utils::{cstr_json_to_type, type_to_json_cstr};
 
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 struct World {
     size: usize,
 }
 
+/// Struct that increases the world size by saying hello
 pub struct HelloStruct {}
 impl HelloStruct {
     fn new() -> Self {
         Self {}
     }
     fn hello(&self, world: World) -> World {
-        println!("[rust] the world is big: {}", world.size);
-        println!("[rust] take an even bigger world");
-
         World {
             size: world.size + 1,
         }
@@ -31,32 +25,47 @@ impl HelloStruct {
 
 #[no_mangle]
 // can't use new since its a reserved keyword in javascript
-pub extern "C" fn create() -> *const Mutex<HelloStruct> {
-    Arc::into_raw(Arc::new(Mutex::new(HelloStruct::new())))
+pub extern "C" fn create() -> *const HelloStruct {
+    Box::into_raw(Box::new(HelloStruct::new()))
 }
 
 #[no_mangle]
 /// # Safety
 /// expects
-/// - valid ptr to an Arc<Mutex<HelloStruct>>
+/// - valid ptr to a HelloStruct
 /// - valid ptr to a World struct encoded as CString encoding a JSON value
-/// returns a World struct encoded as CString encoding a JSON value
-pub unsafe extern "C" fn hello(this: *const Mutex<HelloStruct>, world: *mut i8) -> *mut i8 {
-    let this = ManuallyDrop::new(Arc::from_raw(this));
-    let this = this.lock().expect("failed to aquire lock"); // is it safe ?
-
-    // useful inner function that returns a result so we can use `?`
-    fn result_wrap(this: MutexGuard<HelloStruct>, world: *mut i8) -> Result<*mut i8> {
+/// - A buffer to write the result to which can be eitehr:
+/// - - a pointer to new HelloStruct
+/// - - an error encoded as CString
+/// ->  returns 0 on success and -1 on error
+pub unsafe extern "C" fn hello(this: *mut HelloStruct, world: *mut i8, result: *mut usize) -> i8 {
+    let this = ManuallyDrop::new(Box::from_raw(this));
+    #[allow(clippy::blocks_in_conditions)]
+    match (|| -> Result<CString> {
         //SAFETY: world is valid by the guarentee of the parent function
-        let world: World = unsafe { cstr_to_type(world)? };
-
-        // inner function that have everything typed explicitly instead of pointers
-        fn type_wrap(this: MutexGuard<HelloStruct>, world: World) -> World {
-            this.hello(world)
+        let world: World = unsafe { cstr_json_to_type(world)? };
+        type_to_json_cstr(&this.hello(world))
+    })() {
+        Ok(new_world) => {
+            *result = new_world.into_raw() as _;
+            0
         }
-
-        Ok(CString::new(serde_json::to_string(&type_wrap(this, world))?)?.into_raw())
+        Err(err) => {
+            *result = CString::new(err.to_string())
+                .expect("err is valid cstring")
+                .into_raw() as _;
+            -1
+        }
     }
+}
 
-    result_wrap(this, world).unwrap_or(std::ptr::null_mut())
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_works() {
+        let hello = HelloStruct::new();
+        assert_eq!(hello.hello(World { size: 2 }), World { size: 3 });
+    }
 }
