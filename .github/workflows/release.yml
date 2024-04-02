@@ -39,13 +39,13 @@ jobs:
     - name: Release MacOS lib1
       if: runner.os == 'MacOS'
       run: |
-        mv src-rust/target/release/libhello.dylib libhello_x86_64.dylib
+        mv src-rust/target/release/libeye.dylib libeye_x86_64.dylib
 
     - name: Release MacOS lib2
       if: runner.os == 'MacOS'
       uses: svenstaro/upload-release-action@v2
       with:
-        file: libhello_x86_64.dylib
+        file: libeye_x86_64.dylib
         tag: ${{ github.event.inputs.tag }}
         overwrite: true
 
@@ -59,13 +59,13 @@ jobs:
       run: |
         rustup target add aarch64-apple-darwin
         cargo zigbuild --release --manifest-path src-rust/Cargo.toml --target aarch64-apple-darwin
-        mv src-rust/target/aarch64-apple-darwin/release/libhello.dylib libhello_aarch64.dylib
+        mv src-rust/target/aarch64-apple-darwin/release/libeye.dylib libeye_aarch64.dylib
 
     - name: Release MacOS arm lib2
       if: runner.os == 'Linux'
       uses: svenstaro/upload-release-action@v2
       with:
-        file: libhello_aarch64.dylib
+        file: libeye_aarch64.dylib
         tag: ${{ github.event.inputs.tag }}
         overwrite: true
 
@@ -73,7 +73,7 @@ jobs:
       if: runner.os == 'Linux'
       uses: svenstaro/upload-release-action@v2
       with:
-        file: src-rust/target/release/libhello.so
+        file: src-rust/target/release/libeye.so
         tag: ${{ github.event.inputs.tag }}
         overwrite: true
 
@@ -81,6 +81,6 @@ jobs:
       if: runner.os == 'Windows'
       uses: svenstaro/upload-release-action@v2
       with:
-        file: src-rust/target/release/hello.dll
+        file: src-rust/target/release/eye.dll
         tag: ${{ github.event.inputs.tag }}
         overwrite: true
