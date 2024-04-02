@@ -16,8 +16,16 @@ export type PixelFormat = {
 };
 
 const SYMBOLS = {
-  frame: {
-    parameters: ["buffer", "buffer", "buffer"],
+  create: {
+    parameters: ["buffer"],
+    result: "i8",
+  },
+  next_frame: {
+    parameters: ["pointer", "buffer", "buffer"],
+    result: "i8",
+  },
+  stream_descriptor: {
+    parameters: ["pointer", "buffer"],
     result: "i8",
   },
 } as const;

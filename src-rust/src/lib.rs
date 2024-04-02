@@ -1,7 +1,9 @@
+#![allow(clippy::blocks_in_conditions)]
 use eye_hal::traits::{Context, Device, Stream};
 use eye_hal::PlatformContext;
 use serde::{Deserialize, Serialize};
 use std::ffi::CString;
+use std::mem::ManuallyDrop;
 mod utils;
 use utils::type_to_json_cstr;
 
@@ -61,16 +63,17 @@ impl From<eye_hal::format::PixelFormat> for PixelFormat {
     }
 }
 
+pub struct Camera {
+    stream: Box<dyn Stream<'static, Item = std::result::Result<&'static [u8], eye_hal::Error>>>,
+    stream_descriptor: Descriptor,
+}
+
 /// # Safety
-/// requires
-/// - ptr: valid ptr to a buffer to put the result in (bytes array in case of sucess, cstring error in case of failure)
-/// - len: valid ptr to a buffer to put the length of the bytes in case of sucess
-/// - descriptor_ptr: valid ptr to a buffer a ptr to a Descriptor struct in
-/// returns 0 on sucess and -1 on error
+/// TODO
 #[no_mangle]
-pub unsafe extern "C" fn frame(ptr: *mut usize, len: *mut usize, descriptor_ptr: *mut usize) -> i8 {
+pub unsafe extern "C" fn create(ptr: *mut usize) -> i8 {
     #[allow(clippy::blocks_in_conditions)]
-    match (|| -> Result<(Vec<u8>, CString)> {
+    match (|| -> Result<Camera> {
         // Create a context
         let ctx = PlatformContext::default();
 
@@ -88,22 +91,18 @@ pub unsafe extern "C" fn frame(ptr: *mut usize, len: *mut usize, descriptor_ptr:
         // Since we want to capture images, we need to access the native image stream of the device.
         // The backend will internally select a suitable implementation for the platform stream. On
         // Linux for example, most devices support memory-mapped buffers.
-        let mut stream = dev.start_stream(&stream_desc)?;
+        let stream = dev.start_stream(&stream_desc)?;
 
         // Here we create a loop and just capture images as long as the device produces them. Normally,
         // this loop will run forever unless we unplug the camera or exit the program.
-        let frame = stream.next().ok_or("Stream is dead")??;
-        Ok((
-            frame.to_vec(),
-            type_to_json_cstr(&Descriptor::from(stream_desc))?,
-        ))
+        // let frame = stream.next().ok_or("Stream is dead")??;
+        Ok(Camera {
+            stream: Box::new(stream),
+            stream_descriptor: stream_desc.into(),
+        })
     })() {
-        Ok((mut frame, descriptor)) => {
-            frame.shrink_to_fit();
-            *ptr = frame.as_mut_ptr() as _;
-            *len = frame.len();
-            std::mem::forget(frame);
-            *descriptor_ptr = descriptor.into_raw() as _;
+        Ok(camera) => {
+            *ptr = Box::into_raw(Box::new(camera)) as _;
             0
         }
         Err(err) => {
@@ -112,5 +111,42 @@ pub unsafe extern "C" fn frame(ptr: *mut usize, len: *mut usize, descriptor_ptr:
                 .into_raw() as _;
             -1
         }
+    }
+}
+
+/// # Safety
+/// TODO
+#[no_mangle]
+pub unsafe extern "C" fn next_frame(ptr: *mut Camera, res: *mut usize, len: *mut usize) -> i8 {
+    match (|| -> Result<Vec<u8>> {
+        let camera = Box::from_raw(ptr);
+        let camera = Box::leak(camera);
+        let frame = camera.stream.next().ok_or("Stream is dead")??.to_vec();
+        Ok(frame)
+    })() {
+        Ok(mut frame) => {
+            frame.shrink_to_fit();
+            *res = frame.as_mut_ptr() as _;
+            *len = frame.len();
+            std::mem::forget(frame);
+            0
+        }
+        Err(_) => todo!(),
+    }
+}
+
+/// # Safety
+/// TODO
+#[no_mangle]
+pub unsafe extern "C" fn stream_descriptor(ptr: *mut Camera, res: *mut usize) -> i8 {
+    match {
+        let camera = ManuallyDrop::new(Box::from_raw(ptr));
+        type_to_json_cstr(&camera.stream_descriptor)
+    } {
+        Ok(desc) => {
+            *res = desc.into_raw() as _;
+            0
+        }
+        Err(_) => todo!(),
     }
 }
