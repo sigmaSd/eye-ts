@@ -6,7 +6,7 @@ use std::{ffi::CString, mem::ManuallyDrop};
 /// expects
 /// - valid ptr to a T encoded as CString encoding a JSON value
 /// returns a T
-pub unsafe fn cstr_json_to_type<T: DeserializeOwned>(cstr: *mut i8) -> Result<T> {
+pub unsafe fn _cstr_json_to_type<T: DeserializeOwned>(cstr: *mut i8) -> Result<T> {
     let cstr = ManuallyDrop::new(CString::from_raw(cstr));
     Ok(serde_json::from_str(cstr.to_str()?)?)
 }
