@@ -14,3 +14,7 @@ pub unsafe fn _cstr_json_to_type<T: DeserializeOwned>(cstr: *mut i8) -> Result<T
 pub fn type_to_json_cstr<T: Serialize>(t: &T) -> Result<CString> {
     Ok(CString::new(serde_json::to_string(&t)?)?)
 }
+
+pub fn boxed_error_to_cstring(err: Box<dyn std::error::Error>) -> CString {
+    return CString::new(err.to_string()).expect("failed to create cstring");
+}

@@ -2,9 +2,8 @@
 use eye_hal::traits::{Context, Device, Stream};
 use eye_hal::PlatformContext;
 use serde::{Deserialize, Serialize};
-use std::ffi::CString;
 mod utils;
-use utils::type_to_json_cstr;
+use utils::{boxed_error_to_cstring, type_to_json_cstr};
 
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -104,13 +103,11 @@ pub unsafe extern "C" fn create(ptr: *mut usize) -> i8 {
         })
     })() {
         Ok(camera) => {
-            *ptr = Box::into_raw(Box::new(camera)) as _;
+            ptr.write(Box::into_raw(Box::new(camera)) as _);
             0
         }
         Err(err) => {
-            *ptr = CString::new(err.to_string())
-                .expect("failed to create cstring")
-                .into_raw() as _;
+            ptr.write(boxed_error_to_cstring(err).into_raw() as _);
             -1
         }
     }
@@ -138,7 +135,10 @@ pub unsafe extern "C" fn next_frame(ptr: *mut Camera, res: *mut usize, len: *mut
             std::mem::forget(frame);
             0
         }
-        Err(_) => todo!(),
+        Err(err) => {
+            res.write(boxed_error_to_cstring(err).into_raw() as _);
+            -1
+        }
     }
 }
 
@@ -159,6 +159,9 @@ pub unsafe extern "C" fn stream_descriptor(ptr: *mut Camera, res: *mut usize) ->
             *res = desc.into_raw() as _;
             0
         }
-        Err(_) => todo!(),
+        Err(err) => {
+            res.write(boxed_error_to_cstring(err).into_raw() as _);
+            -1
+        }
     }
 }
