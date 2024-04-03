@@ -68,7 +68,7 @@ const SYMBOLS = {
     parameters: ["pointer", "buffer"],
     result: "i8",
   },
-} as const;
+} satisfies Deno.ForeignLibraryInterface;
 
 export const LIBRARY = await instantiate();
 async function instantiate() {
