@@ -13,7 +13,7 @@ Tested on linux
 
 ```ts
 import sharp from "npm:sharp@0.33.3";
-import { Camera } from "./src/mod.ts";
+import { Camera } from "@sigmasd/eye-ts";
 
 if (import.meta.main) {
   const camera = new Camera();
