@@ -73,10 +73,7 @@ const SYMBOLS = {
 export const LIBRARY = await instantiate();
 async function instantiate() {
   const name = "eye";
-  // Tag version with the prebuilt lib
-  // It doesn't have to be the same as the library version
-  // Only update it when the rust library gets updated
-  const version = "0.1.0";
+  const version = "0.2.0";
   // NOTE: replace this url with the correct repo url
   const url = `https://github.com/sigmaSd/eye-ts/releases/download/${version}`;
 
