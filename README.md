@@ -5,7 +5,10 @@ https://github.com/raymanfx/eye-rs
 
 ## Current status
 
-Tested on linux
+- Tested on linux
+- Might work on macos
+- Still figuring out how to publish compiled rust lib for windows on github
+  action.
 
 ## Examples
 
