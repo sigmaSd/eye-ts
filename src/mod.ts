@@ -100,9 +100,10 @@ export class Camera {
    * @yields {Uint8Array} The next frame from the camera.
    */
   *next(): Generator<Uint8Array, void, unknown> {
+    const ptrBuffer = new Uint8Array(8);
+    const lenBuffer = new Uint8Array(8);
+
     while (true) {
-      const ptrBuffer = new Uint8Array(8);
-      const lenBuffer = new Uint8Array(8);
       const result = LIBRARY.symbols.next_frame(
         this.#ptr,
         ptrBuffer,
