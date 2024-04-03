@@ -12,7 +12,8 @@
       "jsr:@std/fs@0.214": "jsr:@std/fs@0.214.0",
       "jsr:@std/path@0.214": "jsr:@std/path@0.214.0",
       "jsr:@std/path@^0.214.0": "jsr:@std/path@0.214.0",
-      "npm:sharp": "npm:sharp@0.33.3"
+      "npm:sharp": "npm:sharp@0.33.3",
+      "npm:sharp@0.33.3": "npm:sharp@0.33.3"
     },
     "jsr": {
       "@denosaurs/plug@1.0.5": {
