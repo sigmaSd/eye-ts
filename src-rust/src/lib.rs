@@ -68,7 +68,8 @@ pub struct Camera {
 }
 
 /// # Safety
-/// TODO
+/// - ptr must be a valid ptr to a Buffer
+/// -> returns 0 on success -1 on error
 #[no_mangle]
 pub unsafe extern "C" fn create(ptr: *mut usize) -> i8 {
     if ptr.is_null() {
@@ -116,7 +117,10 @@ pub unsafe extern "C" fn create(ptr: *mut usize) -> i8 {
 }
 
 /// # Safety
-/// TODO
+/// - ptr must be a valid ptr to a Camera
+/// - res must be a valid ptr to a u8 buffer
+/// - len must be a valid ptr to a u8 buffer
+/// -> returns 0 on success -1 on error
 #[no_mangle]
 pub unsafe extern "C" fn next_frame(ptr: *mut Camera, res: *mut usize, len: *mut usize) -> i8 {
     if ptr.is_null() || res.is_null() || len.is_null() {
@@ -139,7 +143,9 @@ pub unsafe extern "C" fn next_frame(ptr: *mut Camera, res: *mut usize, len: *mut
 }
 
 /// # Safety
-/// TODO
+/// - ptr must be a valid ptr to a Camera
+/// - res must be a valid ptr to a u8 buffer
+/// -> returns 0 on success -1 on error
 #[no_mangle]
 pub unsafe extern "C" fn stream_descriptor(ptr: *mut Camera, res: *mut usize) -> i8 {
     if ptr.is_null() || res.is_null() {
