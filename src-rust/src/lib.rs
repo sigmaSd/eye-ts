@@ -41,9 +41,6 @@ pub unsafe extern "C" fn create(ptr: *mut usize) -> i8 {
         // Linux for example, most devices support memory-mapped buffers.
         let stream = dev.start_stream(&stream_desc)?;
 
-        // Here we create a loop and just capture images as long as the device produces them. Normally,
-        // this loop will run forever unless we unplug the camera or exit the program.
-        // let frame = stream.next().ok_or("Stream is dead")??;
         Ok(Camera {
             stream: Box::new(stream),
             stream_descriptor: stream_desc.into(),
@@ -103,7 +100,7 @@ pub unsafe extern "C" fn stream_descriptor(ptr: *mut Camera, res: *mut usize) ->
         type_to_json_cstr(&camera.stream_descriptor)
     } {
         Ok(desc) => {
-            *res = desc.into_raw() as _;
+            res.write(desc.into_raw() as _);
             0
         }
         Err(err) => {
