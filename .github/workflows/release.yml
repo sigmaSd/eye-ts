@@ -45,7 +45,7 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         file: libeye_x86_64.dylib
-        tag: ${{ github.event.inputs.tag }}
+        tag: ${{ github.ref }}"
         overwrite: true
 
     # - name: Install cargo-zigbuild
@@ -73,7 +73,7 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         file: src-rust/target/release/libeye.so
-        tag: ${{ github.event.inputs.tag }}
+        tag: ${{ github.ref }}"
         overwrite: true
 
     # - name: Release Windows lib
