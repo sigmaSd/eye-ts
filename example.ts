@@ -1,4 +1,4 @@
-import sharp from "npm:sharp";
+import sharp from "npm:sharp@0.33.3";
 import { Camera } from "./src/mod.ts";
 
 if (import.meta.main) {
@@ -18,6 +18,7 @@ if (import.meta.main) {
       }).toFile(`out${i++}.png`);
       console.log(`Image saved to out${i}.png`);
     }
+    if (i === 5) break;
   }
 }
 
