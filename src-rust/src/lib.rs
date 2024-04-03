@@ -3,7 +3,6 @@ use eye_hal::traits::{Context, Device, Stream};
 use eye_hal::PlatformContext;
 use serde::{Deserialize, Serialize};
 use std::ffi::CString;
-use std::mem::ManuallyDrop;
 mod utils;
 use utils::type_to_json_cstr;
 
@@ -72,7 +71,9 @@ pub struct Camera {
 /// TODO
 #[no_mangle]
 pub unsafe extern "C" fn create(ptr: *mut usize) -> i8 {
-    #[allow(clippy::blocks_in_conditions)]
+    if ptr.is_null() {
+        panic!("null ptr passed to create")
+    }
     match (|| -> Result<Camera> {
         // Create a context
         let ctx = PlatformContext::default();
@@ -118,16 +119,18 @@ pub unsafe extern "C" fn create(ptr: *mut usize) -> i8 {
 /// TODO
 #[no_mangle]
 pub unsafe extern "C" fn next_frame(ptr: *mut Camera, res: *mut usize, len: *mut usize) -> i8 {
+    if ptr.is_null() || res.is_null() || len.is_null() {
+        panic!("null ptr passed to next_frame");
+    }
     match (|| -> Result<Vec<u8>> {
-        let camera = Box::from_raw(ptr);
-        let camera = Box::leak(camera);
+        let camera = unsafe { &mut *ptr };
         let frame = camera.stream.next().ok_or("Stream is dead")??.to_vec();
         Ok(frame)
     })() {
         Ok(mut frame) => {
             frame.shrink_to_fit();
-            *res = frame.as_mut_ptr() as _;
-            *len = frame.len();
+            res.write(frame.as_mut_ptr() as _);
+            len.write(frame.len());
             std::mem::forget(frame);
             0
         }
@@ -139,8 +142,11 @@ pub unsafe extern "C" fn next_frame(ptr: *mut Camera, res: *mut usize, len: *mut
 /// TODO
 #[no_mangle]
 pub unsafe extern "C" fn stream_descriptor(ptr: *mut Camera, res: *mut usize) -> i8 {
+    if ptr.is_null() || res.is_null() {
+        panic!("null ptr passed to stream_descriptor");
+    }
     match {
-        let camera = ManuallyDrop::new(Box::from_raw(ptr));
+        let camera = unsafe { &*ptr };
         type_to_json_cstr(&camera.stream_descriptor)
     } {
         Ok(desc) => {
