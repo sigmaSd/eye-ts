@@ -1,4 +1,8 @@
 {
+  "name": "@sigmasd/eye-ts",
+  "version": "0.1.0",
+  "exports": "./src/mod.ts",
+
   "tasks": {
     "build": "cargo build --manifest-path src-rust/Cargo.toml",
     // run the example using locally built rust library
