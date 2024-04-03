@@ -38,7 +38,7 @@ async function instantiate() {
   // Only update it when the rust library gets updated
   const version = "0.1.0";
   // NOTE: replace this url with the correct repo url
-  const url = `https://github.com/sigmaSd/${name}/releases/download/${version}`;
+  const url = `https://github.com/sigmaSd/eye-ts/releases/download/${version}`;
 
   return await plug.dlopen(
     {

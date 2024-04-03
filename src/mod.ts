@@ -43,7 +43,7 @@ export class Camera {
 
   descriptor() {
     const descriptorBuffer = new Uint8Array(8);
-    const result = LIBRARY.symbols.stream_descriptor2(
+    const result = LIBRARY.symbols.stream_descriptor(
       this.#ptr,
       descriptorBuffer,
     );
