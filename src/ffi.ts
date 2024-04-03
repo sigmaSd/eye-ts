@@ -1,4 +1,5 @@
 import * as plug from "@denosaurs/plug";
+import { version } from "../version.ts";
 
 /**
  * Represents the descriptor of a camera stream.
@@ -73,7 +74,6 @@ const SYMBOLS = {
 export const LIBRARY = await instantiate();
 async function instantiate() {
   const name = "eye";
-  const version = "0.2.0";
   // NOTE: replace this url with the correct repo url
   const url = `https://github.com/sigmaSd/eye-ts/releases/download/${version}`;
 
