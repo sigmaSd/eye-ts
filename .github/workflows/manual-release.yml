@@ -1,4 +1,4 @@
-name: Release libs
+name: Manual Release
 
 on:
   workflow_dispatch:
