@@ -17,7 +17,7 @@ jobs:
     strategy:
       matrix:
         # os: [ubuntu-latest, macos-latest]
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-14]
 
     steps:
     - uses: actions/checkout@v2
@@ -42,13 +42,13 @@ jobs:
       run: |
         mv src-rust/target/release/libeye.dylib libeye_x86_64.dylib
 
-    - name: Release MacOS lib2
-      if: runner.os == 'MacOS'
-      uses: svenstaro/upload-release-action@v2
-      with:
-        file: libeye_x86_64.dylib
-        tag: ${{ github.event.inputs.tag }}
-        overwrite: true
+    # - name: Release MacOS lib2
+    #   if: runner.os == 'MacOS'
+    #   uses: svenstaro/upload-release-action@v2
+    #   with:
+    #     file: libeye_x86_64.dylib
+    #     tag: ${{ github.event.inputs.tag }}
+    #     overwrite: true
 
     # - name: Install cargo-zigbuild
     #   if: runner.os == 'Linux'
