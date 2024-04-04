@@ -36,16 +36,7 @@ jobs:
       run: |
         mv src-rust/target/release/libeye.dylib libeye_$(uname -m).dylib
 
-    - name: Upload MacOS x86_64 lib
-      if: runner.os == 'MacOS'
-      uses: svenstaro/upload-release-action@v2
-      with:
-        file: libeye_*.dylib
-        tag: ${{ github.event.inputs.tag }}
-        overwrite: true
-        file_glob: true
-
-    - name: Upload MacOS arm lib
+    - name: Upload MacOS lib
       if: runner.os == 'MacOS'
       uses: svenstaro/upload-release-action@v2
       with:
