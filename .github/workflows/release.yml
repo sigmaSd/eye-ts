@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         # os: [ubuntu-latest, windows-latest, macos-latest]
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, macos-14]
 
     steps:
     - uses: actions/checkout@v2
@@ -24,49 +24,25 @@ jobs:
       with:
         toolchain: stable
 
-    - uses: goto-bus-stop/setup-zig@v1
-      with:
-        version: 0.10.1
-      if: runner.os == 'Linux'
-
     - name: Build
       uses: actions-rs/cargo@v1
       with:
         command: build
         args: --release --manifest-path src-rust/Cargo.toml
 
-    - name: Release MacOS lib1
+    - name: Correct MacOS lib name
       if: runner.os == 'MacOS'
       run: |
-        mv src-rust/target/release/libeye.dylib libeye_x86_64.dylib
+        mv src-rust/target/release/libeye.dylib libeye_$(uname -m).dylib
 
-    - name: Release MacOS lib2
+    - name: Release MacOS lib
       if: runner.os == 'MacOS'
       uses: svenstaro/upload-release-action@v2
       with:
-        file: libeye_x86_64.dylib
+        file: libeye_*.dylib
         tag: ${{ github.ref }}
         overwrite: true
-
-    # - name: Install cargo-zigbuild
-    #   if: runner.os == 'Linux'
-    #   run: |
-    #     cargo install cargo-zigbuild
-
-    # - name: Release MacOS arm lib1
-    #   if: runner.os == 'Linux'
-    #   run: |
-    #     rustup target add aarch64-apple-darwin
-    #     cargo zigbuild --release --manifest-path src-rust/Cargo.toml --target aarch64-apple-darwin
-    #     mv src-rust/target/aarch64-apple-darwin/release/libeye.dylib libeye_aarch64.dylib
-
-    # - name: Release MacOS arm lib2
-    #   if: runner.os == 'Linux'
-    #   uses: svenstaro/upload-release-action@v2
-    #   with:
-    #     file: libeye_aarch64.dylib
-    #     tag: ${{ github.event.inputs.tag }}
-    #     overwrite: true
+        file_glob: true
 
     - name: Release Linux lib
       if: runner.os == 'Linux'
