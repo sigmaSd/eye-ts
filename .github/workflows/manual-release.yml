@@ -40,17 +40,19 @@ jobs:
       if: runner.os == 'MacOS'
       uses: svenstaro/upload-release-action@v2
       with:
-        file: libeye_x86_64.dylib
+        file: libeye_*.dylib
         tag: ${{ github.event.inputs.tag }}
         overwrite: true
+        file_glob: true
 
     - name: Upload MacOS arm lib
       if: runner.os == 'MacOS'
       uses: svenstaro/upload-release-action@v2
       with:
-        file: libeye_aarch64.dylib
+        file: libeye_*.dylib
         tag: ${{ github.event.inputs.tag }}
         overwrite: true
+        file_glob: true
 
     - name: Upload Linux lib
       if: runner.os == 'Linux'
