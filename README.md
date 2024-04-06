@@ -1,3 +1,5 @@
+# NEWS: Deprecated in favor of https://jsr.io/@sigma/camera
+
 # Eye Ts
 
 Cross platform camera access for Deno. Wrapper over
